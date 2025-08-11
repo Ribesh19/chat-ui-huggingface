@@ -125,7 +125,7 @@
 				.then(async () => {
 					const query = new URLSearchParams($page.url.searchParams.toString());
 					query.delete("model");
-					await goto(`${base}/?${query.toString()}`, {
+                    await goto(`${base}/chat?${query.toString()}`, {
 						invalidateAll: true,
 					});
 				});
@@ -141,7 +141,7 @@
 				.then(async () => {
 					const query = new URLSearchParams($page.url.searchParams.toString());
 					query.delete("tools");
-					await goto(`${base}/?${query.toString()}`, {
+                    await goto(`${base}/chat?${query.toString()}`, {
 						invalidateAll: true,
 					});
 				});
@@ -154,10 +154,21 @@
 				method: "POST",
 				body: JSON.stringify({ token }),
 			}).then(() => {
-				goto(`${base}/`, { invalidateAll: true });
+                goto(`${base}/chat`, { invalidateAll: true });
 			});
 		}
 	});
+
+	// Define which routes should NOT have the chat layout
+    let isPublicPage = $derived(
+        ["/home", "/pricing", "/revision", "/math-mania", "/tutor-me", "/auth"].includes($page.route.id ?? "") ||
+        $page.url.pathname.startsWith(`${base}/home`) ||
+        $page.url.pathname.startsWith(`${base}/pricing`) ||
+        $page.url.pathname.startsWith(`${base}/revision`) ||
+        $page.url.pathname.startsWith(`${base}/math-mania`) ||
+        $page.url.pathname.startsWith(`${base}/tutor-me`) ||
+        $page.url.pathname.startsWith(`${base}/auth`)
+    );
 
 	let mobileNavTitle = $derived(
 		["/models", "/assistants", "/privacy", "/tools"].includes($page.route.id ?? "")
@@ -174,7 +185,7 @@
 </script>
 
 <svelte:head>
-	<title>{publicConfig.PUBLIC_APP_NAME}</title>
+    <title>Previsely</title>
 	<meta name="description" content="The first open source alternative to ChatGPT. 💪" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:site" content="@huggingface" />
@@ -222,45 +233,56 @@
 	<OverloadedModal onClose={() => (overloadedModalOpen = false)} />
 {/if}
 
-<Search />
+{#if isPublicPage}
+	<!-- Public pages layout - no sidebar, no chat interface -->
+	<div class="min-h-screen">
+		{#if currentError}
+			<Toast message={currentError} />
+		{/if}
+		{@render children?.()}
+	</div>
+{:else}
+	<!-- Chat interface layout - with sidebar and navigation -->
+	<Search />
 
-<div
-	class="fixed grid h-full w-screen grid-cols-1 grid-rows-[auto,1fr] overflow-hidden text-smd {!isNavCollapsed
-		? 'md:grid-cols-[290px,1fr]'
-		: 'md:grid-cols-[0px,1fr]'} transition-[300ms] [transition-property:grid-template-columns] dark:text-gray-300 md:grid-rows-[1fr]"
->
-	<ExpandNavigation
-		isCollapsed={isNavCollapsed}
-		onClick={() => (isNavCollapsed = !isNavCollapsed)}
-		classNames="absolute inset-y-0 z-10 my-auto {!isNavCollapsed
-			? 'left-[290px]'
-			: 'left-0'} *:transition-transform"
-	/>
-
-	<MobileNav title={mobileNavTitle}>
-		<NavMenu
-			{conversations}
-			user={data.user}
-			canLogin={!data.user && data.loginEnabled}
-			on:shareConversation={(ev) => shareConversation(ev.detail.id, ev.detail.title)}
-			on:deleteConversation={(ev) => deleteConversation(ev.detail)}
-			on:editConversationTitle={(ev) => editConversationTitle(ev.detail.id, ev.detail.title)}
-		/>
-	</MobileNav>
-	<nav
-		class="grid max-h-screen grid-cols-1 grid-rows-[auto,1fr,auto] overflow-hidden *:w-[290px] max-md:hidden"
+	<div
+		class="fixed grid h-full w-screen grid-cols-1 grid-rows-[auto,1fr] overflow-hidden text-smd {!isNavCollapsed
+			? 'md:grid-cols-[290px,1fr]'
+			: 'md:grid-cols-[0px,1fr]'} transition-[300ms] [transition-property:grid-template-columns] dark:text-gray-300 md:grid-rows-[1fr]"
 	>
-		<NavMenu
-			{conversations}
-			user={data.user}
-			canLogin={!data.user && data.loginEnabled}
-			on:shareConversation={(ev) => shareConversation(ev.detail.id, ev.detail.title)}
-			on:deleteConversation={(ev) => deleteConversation(ev.detail)}
-			on:editConversationTitle={(ev) => editConversationTitle(ev.detail.id, ev.detail.title)}
+		<ExpandNavigation
+			isCollapsed={isNavCollapsed}
+			onClick={() => (isNavCollapsed = !isNavCollapsed)}
+			classNames="absolute inset-y-0 z-10 my-auto {!isNavCollapsed
+				? 'left-[290px]'
+				: 'left-0'} *:transition-transform"
 		/>
-	</nav>
-	{#if currentError}
-		<Toast message={currentError} />
-	{/if}
-	{@render children?.()}
-</div>
+
+		<MobileNav title={mobileNavTitle}>
+			<NavMenu
+				{conversations}
+				user={data.user}
+				canLogin={!data.user && data.loginEnabled}
+				on:shareConversation={(ev) => shareConversation(ev.detail.id, ev.detail.title)}
+				on:deleteConversation={(ev) => deleteConversation(ev.detail)}
+				on:editConversationTitle={(ev) => editConversationTitle(ev.detail.id, ev.detail.title)}
+			/>
+		</MobileNav>
+		<nav
+			class="grid max-h-screen grid-cols-1 grid-rows-[auto,1fr,auto] overflow-hidden *:w-[290px] max-md:hidden"
+		>
+			<NavMenu
+				{conversations}
+				user={data.user}
+				canLogin={!data.user && data.loginEnabled}
+				on:shareConversation={(ev) => shareConversation(ev.detail.id, ev.detail.title)}
+				on:deleteConversation={(ev) => deleteConversation(ev.detail)}
+				on:editConversationTitle={(ev) => editConversationTitle(ev.detail.id, ev.detail.title)}
+			/>
+		</nav>
+		{#if currentError}
+			<Toast message={currentError} />
+		{/if}
+		{@render children?.()}
+	</div>
+{/if}

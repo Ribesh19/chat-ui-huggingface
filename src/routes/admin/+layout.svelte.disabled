@@ -1,0 +1,158 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
+  import { browser } from '$app/environment';
+  import PublicHeader from '$lib/components/PublicHeader.svelte';
+  import CarbonDashboard from '~icons/carbon/dashboard';
+  import CarbonDocument from '~icons/carbon/document';
+  import CarbonBookmark from '~icons/carbon/bookmark';
+  import CarbonUserMultiple from '~icons/carbon/user-multiple';
+  import CarbonSettings from '~icons/carbon/settings';
+  import CarbonAnalytics from '~icons/carbon/analytics';
+
+  let isLoading = true;
+  let isAdmin = false;
+  let userProfile: any = null;
+
+  const adminNavItems = [
+    { href: '/admin', label: 'Dashboard', icon: CarbonDashboard },
+    { href: '/admin/questions', label: 'Questions', icon: CarbonDocument },
+    { href: '/admin/curriculum', label: 'Curriculum', icon: CarbonBookmark },
+    { href: '/admin/users', label: 'Users', icon: CarbonUserMultiple },
+    { href: '/admin/analytics', label: 'Analytics', icon: CarbonAnalytics },
+    { href: '/admin/settings', label: 'Settings', icon: CarbonSettings }
+  ];
+
+  onMount(async () => {
+    if (!browser) {
+      isLoading = false;
+      return;
+    }
+    
+    try {
+      const { getAuth, onAuthStateChanged } = await import('firebase/auth');
+      const { app } = await import('$lib/firebase');
+      
+      const auth = getAuth(app);
+      
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        try {
+          if (!user) {
+            goto('/auth?redirect=/admin');
+            return;
+          }
+
+          // Get auth token and check admin status via secure API
+          try {
+            const { getIdToken } = await import('firebase/auth');
+            const token = await getIdToken(user);
+            
+            const response = await fetch('/api/admin/check', {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (!response.ok) {
+              console.error('Admin check API failed:', response.status, response.statusText);
+              goto('/setup-admin');
+              return;
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.isAdmin) {
+              isAdmin = true;
+              userProfile = result.userProfile || {
+                displayName: user.displayName || user.email,
+                email: user.email,
+                role: 'admin'
+              };
+            } else {
+              console.log('User is not admin or check failed:', result);
+              goto('/setup-admin');
+              return;
+            }
+          } catch (apiError) {
+            console.error('Error calling admin check API:', apiError);
+            // Fallback: if API fails, check if user email matches admin email
+            if (user.email === 'ribeshforu@gmail.com') {
+              console.log('Using fallback admin check for authorized email');
+              isAdmin = true;
+              userProfile = {
+                displayName: user.displayName || 'Admin',
+                email: user.email,
+                role: 'admin'
+              };
+            } else {
+              goto('/setup-admin');
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          goto('/setup-admin');
+        } finally {
+          isLoading = false;
+        }
+      });
+      
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error loading Firebase:', error);
+      goto('/setup-admin');
+      isLoading = false;
+    }
+  });
+</script>
+
+{#if isLoading}
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+{:else if isAdmin}
+  <div class="min-h-screen bg-gray-50">
+    <PublicHeader />
+    
+    <div class="flex h-[calc(100vh-64px)]">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-white shadow-sm border-r border-gray-200">
+        <div class="p-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Admin Panel</h2>
+          <p class="text-sm text-gray-600">{userProfile?.displayName}</p>
+        </div>
+        
+        <nav class="p-4 space-y-2">
+          {#each adminNavItems as item}
+            <a
+              href={item.href}
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors
+                {$page.url.pathname === item.href 
+                  ? 'bg-blue-50 text-blue-700 font-medium' 
+                  : 'text-gray-700 hover:bg-gray-100'}"
+            >
+              <svelte:component this={item.icon} class="w-5 h-5" />
+              {item.label}
+            </a>
+          {/each}
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-auto">
+        <slot />
+      </main>
+    </div>
+  </div>
+{:else}
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div class="text-center">
+      <h1 class="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+      <p class="text-gray-600 mb-6">You don't have permission to access the admin panel.</p>
+      <a href="/" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Go Back to Home
+      </a>
+    </div>
+  </div>
+{/if}

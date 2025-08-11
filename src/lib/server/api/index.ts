@@ -29,12 +29,12 @@ export const app = new Elysia({ prefix })
 	})
 	.use(
 		swagger({
-			documentation: {
-				info: {
-					title: "chat-ui API",
-					version: config.PUBLIC_VERSION,
-				},
-			},
+            documentation: {
+                info: {
+                    title: `${config.PUBLIC_APP_NAME} API`,
+                    version: config.PUBLIC_VERSION,
+                },
+            },
 			provider: "swagger-ui",
 			path: `swagger`,
 		})

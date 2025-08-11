@@ -1,0 +1,125 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.admin == true ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+    
+    function isTeacher() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['teacher', 'admin'];
+    }
+    
+    // Curriculums - Read-only for authenticated users, write for admins
+    match /curriculums/{curriculumId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Questions - Read-only for authenticated users (answer hashes NEVER exposed)
+    // CRITICAL SECURITY: Answer validation happens server-side only
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // User Progress - Users can only access their own progress
+    match /user_progress/{progressId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isTeacher());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+    
+    // Users - Can read own profile, limited read for others
+    match /users/{userId} {
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == userId || 
+         (resource.data.keys().hasAll(['displayName', 'photoURL']) && 
+          !resource.data.keys().hasAny(['email', 'subscription', 'settings'])));
+      allow create: if isAuthenticated() && 
+        request.auth.uid == userId;
+      allow update: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'subscription']));
+      allow delete: if isAdmin();
+    }
+    
+    // Learning Sessions - Users own their sessions
+    match /learning_sessions/{sessionId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isTeacher());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+    
+    // Achievements - Read-only for all authenticated users
+    match /achievements/{achievementId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Analytics - Users can read their own, admins can read all
+    match /analytics/{analyticsId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create, update: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+    
+    // Leaderboards - Read-only for authenticated users
+    match /leaderboards/{leaderboardId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Feedback - Users can create and read their own
+    match /feedback/{feedbackId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // AI Interactions - Users own their interactions
+    match /ai_interactions/{interactionId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['helpful']);
+      allow delete: if isAdmin();
+    }
+    
+    // Test collections - Allow for development only
+    match /admin_test/{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

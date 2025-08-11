@@ -20,7 +20,7 @@
 	>
 		<h2 class="flex items-center text-2xl font-semibold text-gray-800">
 			<Logo classNames="mr-1" />
-			{publicConfig.PUBLIC_APP_NAME}
+			{publicConfig.PUBLIC_APP_NAME || 'Previsely'}
 		</h2>
 
 		<p class="text-lg font-semibold leading-snug text-gray-800" style="text-wrap: balance;">

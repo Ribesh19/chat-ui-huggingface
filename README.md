@@ -233,10 +233,10 @@ Here is a list of header names for common auth providers:
 
 ### Theming
 
-You can use a few environment variables to customize the look and feel of chat-ui. These are by default:
+You can use a few environment variables to customize the look and feel of Previsely. These are by default:
 
 ```env
-PUBLIC_APP_NAME=ChatUI
+PUBLIC_APP_NAME=Previsely
 PUBLIC_APP_ASSETS=chatui
 PUBLIC_APP_COLOR=blue
 PUBLIC_APP_DESCRIPTION="Making the community's best AI chat models available to everyone."
@@ -251,6 +251,21 @@ PUBLIC_APP_DISCLAIMER=
 - `PUBLIC_APP_DISCLAIMER` If set to 1, we show a disclaimer about generated outputs on login.
 
 ### Web Search config
+### Firebase Auth (optional)
+
+Create a `.env.local` in the project root and add your Firebase client keys (from Firebase Console → Project settings → General → Your apps):
+
+```
+PUBLIC_FIREBASE_API_KEY=your_key
+PUBLIC_FIREBASE_AUTH_DOMAIN=yourapp.firebaseapp.com
+PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+PUBLIC_FIREBASE_STORAGE_BUCKET=yourapp.appspot.com
+PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+PUBLIC_FIREBASE_APP_ID=...
+```
+
+Start the app and open `/auth` for Google or email/password sign in.
+
 
 You can enable the web search through an API by adding `YDC_API_KEY` ([docs.you.com](https://docs.you.com)) or `SERPER_API_KEY` ([serper.dev](https://serper.dev/)) or `SERPAPI_KEY` ([serpapi.com](https://serpapi.com/)) or `SERPSTACK_API_KEY` ([serpstack.com](https://serpstack.com/)) or `SEARCHAPI_KEY` ([searchapi.io](https://www.searchapi.io/)) to your `.env.local`.
 

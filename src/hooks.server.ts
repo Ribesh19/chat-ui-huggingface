@@ -107,7 +107,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 		});
 	}
 
-	if (event.url.pathname.startsWith(`${base}/admin/`) || event.url.pathname === `${base}/admin`) {
+	// Skip auth check for math-mania admin routes (they use Firebase auth)
+	const isMathManiaAdmin = event.url.pathname.startsWith(`${base}/admin/curriculum`) ||
+		event.url.pathname.startsWith(`${base}/admin/questions`) ||
+		event.url.pathname.startsWith(`${base}/admin/grades`) ||
+		event.url.pathname.startsWith(`${base}/admin/subjects`) ||
+		event.url.pathname.startsWith(`${base}/api/admin`) ||
+		event.url.pathname === `${base}/admin`;
+
+	if (!isMathManiaAdmin && (event.url.pathname.startsWith(`${base}/admin/`) || event.url.pathname === `${base}/admin`)) {
 		const ADMIN_SECRET = config.ADMIN_API_SECRET || config.PARQUET_EXPORT_SECRET;
 
 		if (!ADMIN_SECRET) {

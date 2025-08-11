@@ -88,11 +88,11 @@
 			<span class="max-w-full truncate px-4" data-testid="chat-title">{title}</span>
 		{/if}
 	</div>
-	<a
-		class:invisible={!page.params?.id}
-		href="{base}/"
-		class="-mr-3 flex size-12 shrink-0 items-center justify-center text-lg"><IconNew /></a
-	>
+    <a
+        class:invisible={!page.params?.id}
+        href="{base}/chat"
+        class="-mr-3 flex size-12 shrink-0 items-center justify-center text-lg"><IconNew /></a
+    >
 </nav>
 
 <!-- Mobile drawer overlay - shows when drawer is open -->
@@ -156,7 +156,7 @@
 	class="fixed bottom-0 left-0 top-0 z-30 grid max-h-screen
 	grid-cols-1 grid-rows-[auto,1fr,auto,auto] bg-white pt-4 dark:bg-gray-900 md:hidden"
 >
-	{#if page.url.pathname === base + "/"}
+	{#if page.url.pathname === base + "/" || page.url.pathname === base + "/chat"}
 		<button
 			type="button"
 			class="absolute right-0 top-0 z-50 flex size-12 items-center justify-center text-lg"

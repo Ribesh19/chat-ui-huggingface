@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth scroll for in-page navigation */
+html {
+  scroll-behavior: smooth;
+}
+
 @layer components {
 	.btn {
 		@apply inline-flex flex-shrink-0 cursor-pointer select-none items-center justify-center whitespace-nowrap outline-none transition-all focus:ring disabled:cursor-default;
@@ -30,6 +35,13 @@
 	.scrollbar-custom {
 		@apply scrollbar-thin scrollbar-track-transparent scrollbar-thumb-black/10 scrollbar-thumb-rounded-full scrollbar-w-1 hover:scrollbar-thumb-black/20 dark:scrollbar-thumb-white/10 dark:hover:scrollbar-thumb-white/20;
 	}
+
+  .skill-box {
+    @apply inline-flex items-center justify-center rounded border w-6 h-6 text-[10px] leading-none select-none;
+  }
+  .skill-box-lg {
+    @apply inline-flex items-center justify-center rounded border w-7 h-7 text-[10px] leading-none select-none;
+  }
 }
 
 .katex-display {
