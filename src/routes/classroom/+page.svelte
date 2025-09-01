@@ -5,8 +5,10 @@
   import CarbonCollaborate from "~icons/carbon/collaborate";
   import CarbonCalendar from "~icons/carbon/calendar";
   import CarbonChartBar from "~icons/carbon/chart-bar";
+  import CarbonDocument from "~icons/carbon/document";
 
   const cards = [
+    { title: "Interactive Study", desc: "Study PDFs with AI assistance and interactive chat.", icon: CarbonDocument, href: `${base}/classroom/study` },
     { title: "Create Classroom", desc: "Set up a classroom space and invite students.", icon: CarbonUserMultiple, href: `${base}/contest-play` },
     { title: "Collaborative Sessions", desc: "Host interactive study sessions with AI guidance.", icon: CarbonCollaborate, href: `${base}/group-battle` },
     { title: "Schedule Practice", desc: "Plan daily challenges and assignments.", icon: CarbonCalendar, href: `${base}/quiz-play/daily-quiz-dashboard` },
@@ -28,7 +30,7 @@
   </section>
 
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
       {#each cards as c}
         <a href={c.href} class="group rounded-xl border border-gray-200/60 dark:border-gray-700/60 bg-white/80 dark:bg-gray-800/70 backdrop-blur p-6 hover:shadow-md transition-all">
           <div class="mb-4 inline-flex items-center justify-center rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200 size-10">

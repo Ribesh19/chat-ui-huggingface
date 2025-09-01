@@ -167,7 +167,8 @@
         $page.url.pathname.startsWith(`${base}/revision`) ||
         $page.url.pathname.startsWith(`${base}/math-mania`) ||
         $page.url.pathname.startsWith(`${base}/tutor-me`) ||
-        $page.url.pathname.startsWith(`${base}/auth`)
+        $page.url.pathname.startsWith(`${base}/auth`) ||
+        $page.url.pathname.startsWith(`${base}/classroom/study`)
     );
 
 	let mobileNavTitle = $derived(
